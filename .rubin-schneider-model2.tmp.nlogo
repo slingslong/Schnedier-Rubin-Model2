@@ -2,20 +2,22 @@
 ;;; Setup Procedures ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 globals [
-         remover
-]
-turtles-own [group]
+         remover ;; tracks the number of ticks so we can "retire" scientists once the number of scientists reaches num-scientists
+         ticks-on-contest ;; tracks the number of ticks used on display-contest to calibrate aspects of model which depend on time-steps
+       ]
+turtles-own [group] ;; if a turtle has group = 0, it is a part of a HEG. If a turtle has group = 1, it is part of a HUG.
 
 to setup
   clear-all
   set-default-shape turtles "circle"
   ;; make the initial network of two turtles and an edge
-  create-turtles 4 [
+  create-turtles num-links [
     set color red
     create-links-with other turtles
     fd 8
   ]
-  set remover -97
+  set remover 3 - num-scientists
+  set ticks-on-contest 0
   reset-ticks
 end
 
@@ -24,7 +26,7 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;; go procedure for building network
+;; go procedure for building and maintaining network
 to go
   ask links [ set color gray ]
   make-node
@@ -38,30 +40,79 @@ to go
   tick
 end
 
-to-report heg-advantage ;change conventions: only use 1/0 or heg/hug
-  let wins1 0
-  let wins0 0
-  repeat 250 [
+;; reports the difference between the proportion of contests won by a HEG member and the proportion of contests won by a HUG member
+to-report heg-advantage
+  let hug-wins 0
+  let heg-wins 0
+  repeat num-contests [
     ifelse run-contest = 0 [
-      set wins0 wins0 + 1
+      set heg-wins heg-wins + 1
     ]
     [ if run-contest = 1 [
-      set wins1 wins1 + 1
+      set hug-wins hug-wins + 1
       ]
     ]
   ]
-  report wins0 / 250 - wins1 / 250
+  report (heg-wins - hug-wins ) / num-contests
 end
 
-;; procedure for running contest
+;; reports the winner of a contest
 to-report run-contest
   ;code for assigning contestants
   random-seed new-seed
   let winner nobody
-  let player1 one-of turtles with [group = 1]
-  let player2 one-of turtles with [group = 0]
-  ask player1 [set color blue]
-  ask player2 [set color green]
+  let hug-player one-of turtles with [group = 1]
+  let heg-player one-of turtles with [group = 0]
+  ask hug-player [set color blue]
+  ask heg-player [set color green]
+  while [count turtles with [color = red] != 0] [
+    let scientist one-of turtles with [color = red]
+    let blues turtles with [color = blue]
+    let greens turtles with [color = green]
+    let blues-list sort blues
+    let greens-list sort greens
+    set blues-list map [i -> path-length scientist i ] blues-list
+    show blues-list
+    set greens-list map [i -> path-length scientist i] greens-list
+    show greens-list
+    let distance1 min blues-list
+    let distance2 min greens-list
+    ifelse distance1 < distance2 [
+      ask scientist [set color blue]
+    ] [
+      ifelse distance2 < distance1 [
+        ask scientist [set color green]
+      ] [
+        ask scientist [set color one-of [blue green]]
+      ]
+    ]
+  ]
+  ifelse (count turtles with [color = blue] > 66) [
+    set winner hug-player
+    print ("Player from HUG wins!")
+  ] [
+    ifelse (count turtles with [color = green] > 66) [
+      set winner heg-player
+      print ("Player from HEG wins!")
+    ] [
+      print ("Tie!")
+    ]
+  ]
+  reset-contest
+  ifelse winner != nobody [
+    report [group] of winner
+  ]
+  [ report 2]
+end
+
+;; a procedure that displays each step of a attribution contest.
+to display-contest
+  random-seed new-seed
+  let winner nobody
+  let hug-player one-of turtles with [group = 1]
+  let heg-player one-of turtles with [group = 0]
+  ask hug-player [set color blue]
+  ask heg-player [set color green]
   while [count turtles with [color = red] != 0] [
     let scientist one-of turtles with [color = red]
     let blues turtles with [color = blue]
@@ -85,25 +136,24 @@ to-report run-contest
         ask scientist [set color one-of [blue green]]
       ]
     ]
+    tick
+    set ticks-on-contest ticks-on-contest + 1
   ]
   ifelse (count turtles with [color = blue] > 66) [
-    set winner player1
+    set winner hug-player
     print ("Player from HUG wins!")
   ] [
     ifelse (count turtles with [color = green] > 66) [
-      set winner player2
+      set winner heg-player
       print ("Player from HEG wins!")
     ] [
       print ("Tie!")
     ]
   ]
   reset-contest
-  ifelse winner != nobody [
-    report [group] of winner
-  ]
-  [ report 2]
 end
 
+;; procedure to reset a contest
 to reset-contest
   ask turtles [set color red]
 end
@@ -115,10 +165,10 @@ end
 ;  while [num1 = num2] [
 ;    set num2 random 99
 ;  ]
-;  set player1 turtle num1
-;  set player2 turtle num2
-;  ask player1 [set color blue]
-;  ask player2 [set color green]
+;  set hug-player turtle num1
+;  set heg-player turtle num2
+;  ask hug-player [set color blue]
+;  ask heg-player [set color green]
 
 ;; used for creating a new node
 
@@ -129,11 +179,12 @@ end
 ;  called by procedure GO
 ;  called by Button 'go'
 
+;; procedure to make a node and connect it with other nodes.
 to make-node
   create-turtles 1
   [
     set color red
-    let community-proportion population_proportion / (1 + 10 * e ^ (-0.5 * ticks))
+    let community-proportion population_proportion / (1 + 10 * e ^ (-0.5 * (ticks - ticks-on-contest))) ;; here we use ticks-on-contest so that the ticks used in displaying a contest do not count towards the actual time-steps.
     show community-proportion
     ifelse random-float 1 <= community-proportion [
       set group 1
@@ -159,23 +210,29 @@ to make-node
       foreach partner-link-neighbors [
         i ->
         if self != i [ ; Ensure we're not linking to ourselves
-          create-link-with i [ set color blue ]
+          let ran random-float 1
+          if ran < .5 [
+            create-link-with i [ set color blue ]
+          ]
         ]
       ]
     ]
   ]
 end
 
+;; procedure to find partners that a new node will connect to
 to-report find-partners [new-node] ;; issue with turtle 178
   let old-nodes sort turtles with [self != new-node]
   let degrees sum map [i -> count [link-neighbors] of i] old-nodes
   let similarities sum map [i -> similarity new-node i] old-nodes
   let turtle-weights map [i -> list (i) (homophily * (similarity new-node i / (1 + similarities)) +
     (1 - homophily) * (count [link-neighbors] of i / degrees))] old-nodes
+  ;; We weigh each turtle's chances of connecting based on their similarity and degree. See Rubin and Schneider (2021).
   show turtle-weights ;; issue with this code; calculation is the same for all turtles in list
   report lottery-winners turtle-weights
 end
 
+;; reports 1 if two nodes are in the same group and 0 otherwise.
 to-report similarity [new-node old-node]
   ifelse [group] of new-node = [group] of old-node [
     report 1
@@ -185,6 +242,7 @@ to-report similarity [new-node old-node]
   ]
 end
 
+;; procedure that determines the group of nodes a new node will connect to.
 to-report lottery-winners [turtle-weights]
   set turtle-weights shuffle turtle-weights
   let results []
@@ -227,6 +285,7 @@ end
 ;  report result
 ;end
 
+;; a procedure that reports the shortest path-length between two turtles using depth-first search
 to-report path-length [start-turtle end-turtle]
   if start-turtle = end-turtle [ report 0 ] ; Path length is 0 if both turtles are the same
 
@@ -491,17 +550,6 @@ NIL
 0
 
 INPUTBOX
-283
-503
-343
-563
-age-of-scientist
-0.0
-1
-0
-Number
-
-INPUTBOX
 365
 504
 431
@@ -535,10 +583,10 @@ population_proportion
 Number
 
 MONITOR
-38
-523
-123
-568
+25
+516
+110
+561
 NIL
 count turtles
 17
@@ -546,35 +594,44 @@ count turtles
 11
 
 INPUTBOX
-840
-85
-1075
-145
+821
+96
+1056
+156
 num-links
 4.0
 1
 0
 Number
 
-BUTTON
-864
-265
-965
-298
-NIL
-reset-contest
-NIL
+INPUTBOX
+717
+493
+872
+553
+num-scientists
+100.0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
+0
+Number
+
+INPUTBOX
+833
+187
+988
+247
+num-contests
+250.0
 1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
+
+
+This is a model from Rubin and Schneider's 2021 paper, in which they argue that 
+
 
 In some networks, a few "hubs" have lots of connections, while everybody else only has a few.  This model shows one way such networks can arise.
 
@@ -584,13 +641,29 @@ This model generates these networks by a process of "preferential attachment", i
 
 ## HOW IT WORKS
 
-The model starts with two nodes connected by an edge.
+The model starts with a number of HUG members connected by an edge.
 
-At each step, a new node is added.  A new node picks an existing node to connect to randomly, but with some bias.  More specifically, a node's chance of being selected is directly proportional to the number of connections it already has, or its "degree." This is the mechanism which is called "preferential attachment."
+At each step, a new node is added.  The probability that the new node is a HUG member is determined by a logistic growth equation; as time goes on, the probability approaches the population proportion of the HUG. A new node picks existing nodes to connect to randomly, but with some bias.  More specifically, a node's chance of being selected is directly proportional to the number of connections it already has, or its "degree," and its similarity to the new node. 
+
+When the model contains more than 50 nodes, each new node has a 50% chance of connecting with all link-neighbors of the first node it chooses to connect to. This represents a scientific field which becomes established and adopts practices to train new scientists. Furthermore, beyond a specified size old nodes "retire," along with all of their links. 
+
+An attribution contest can occur at any time-step. One node in each group is randomly chosen. The HUG member is blue and the HEG member is green. At each step, a randomly chosen node turns either blue or green depending on whether the closest non-red node is blue or green. This represents each scientists learning about a discovery from someone in the network who already has a belief about who has made the discovery. A group wins when a supermajority of nodes believe that the member of said group made the discovery. 
 
 ## HOW TO USE IT
 
 Pressing the GO ONCE button adds one new node.  To continuously add nodes, press GO.
+
+The DISPLAY-CONTEST button runs an attribution contest.
+
+The NUM-LINKS input determines the number of initial nodes and number of links a new node will create, minus the "advisors" it may also link to. 
+
+The POPULATION-PROPORTION input determines the background proportion of the HUG.
+
+The HOMOPHILY input determines how strongly new nodes consider similarity between themselves and target nodes when deciding who to link to.
+
+The NUM-SCIENTISTS input determines the greatest possible size of the scientific community.
+
+The NUM-CONTESTS input determines the number of c
 
 The LAYOUT? switch controls whether or not the layout procedure is run.  This procedure attempts to move the nodes around to make the structure of the network easier to see.
 
