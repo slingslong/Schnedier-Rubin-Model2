@@ -223,7 +223,7 @@ to-report find-partners [new-node] ;; issue with turtle 178
   let turtle-weights map [i -> list (i) (homophily * (similarity new-node i / (1 + similarities)) +
     (1 - homophily) * (count [link-neighbors] of i / degrees))] old-nodes
   ;; We weigh each turtle's chances of connecting based on their similarity and degree. See Rubin and Schneider (2021).
-  show turtle-weights ;; issue with this code; calculation is the same for all turtles in list
+ ;; issue with this code; calculation is the same for all turtles in list
   report lottery-winners turtle-weights
 end
 
@@ -616,7 +616,7 @@ INPUTBOX
 988
 247
 num-contests
-250.0
+25.0
 1
 0
 Number

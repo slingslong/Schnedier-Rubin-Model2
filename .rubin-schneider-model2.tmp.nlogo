@@ -72,9 +72,7 @@ to-report run-contest
     let blues-list sort blues
     let greens-list sort greens
     set blues-list map [i -> path-length scientist i ] blues-list
-
     set greens-list map [i -> path-length scientist i] greens-list
-    show greens-list
     let distance1 min blues-list
     let distance2 min greens-list
     ifelse distance1 < distance2 [
@@ -120,9 +118,7 @@ to display-contest
     let blues-list sort blues
     let greens-list sort greens
     set blues-list map [i -> path-length scientist i ] blues-list
-    show blues-list
     set greens-list map [i -> path-length scientist i] greens-list
-    show greens-list
     let distance1 min blues-list
     let distance2 min greens-list
     print (word "The scientist is " distance1 " steps away from the closest blue scientist. "
@@ -185,7 +181,6 @@ to make-node
   [
     set color red
     let community-proportion population_proportion / (1 + 10 * e ^ (-0.5 * (ticks - ticks-on-contest))) ;; here we use ticks-on-contest so that the ticks used in displaying a contest do not count towards the actual time-steps.
-    show community-proportion
     ifelse random-float 1 <= community-proportion [
       set group 1
       set shape "box"
@@ -228,7 +223,7 @@ to-report find-partners [new-node] ;; issue with turtle 178
   let turtle-weights map [i -> list (i) (homophily * (similarity new-node i / (1 + similarities)) +
     (1 - homophily) * (count [link-neighbors] of i / degrees))] old-nodes
   ;; We weigh each turtle's chances of connecting based on their similarity and degree. See Rubin and Schneider (2021).
-  show turtle-weights ;; issue with this code; calculation is the same for all turtles in list
+ ;; issue with this code; calculation is the same for all turtles in list
   report lottery-winners turtle-weights
 end
 
@@ -621,7 +616,7 @@ INPUTBOX
 988
 247
 num-contests
-250.0
+25.0
 1
 0
 Number
