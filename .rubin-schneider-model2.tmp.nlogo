@@ -72,7 +72,7 @@ to-report run-contest
     let blues-list sort blues
     let greens-list sort greens
     set blues-list map [i -> path-length scientist i ] blues-list
-    show blues-list
+
     set greens-list map [i -> path-length scientist i] greens-list
     show greens-list
     let distance1 min blues-list
@@ -626,28 +626,42 @@ num-contests
 0
 Number
 
+BUTTON
+831
+281
+972
+314
+NIL
+show heg-advantage
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
+This is a model from Rubin and Schneider's 2021 paper "Priority and privilege in scientific discovery," in which they argue that the social dynamics of credit attribution in scientific communities can create structural disadvantages in socially diverse science and create a sub-optimal division of labor.
 
-This is a model from Rubin and Schneider's 2021 paper, in which they argue that 
+The priority rule in science is the social norm that awards credit to the first scientist or group of scientists to make a discovery. However, Rubin and Schneider argue that beliefs by individual scientists about who made the first discovery depends on their position in a social network. Therefore, if two agents make a discovery at the same time, who ends up obtaining credit for the discovery may depend heavily on who they are connected to in the network. This model demonstrates how members of a historically under-represented group (HUG) may be less connected than their historically entrenched counterparts (HEG).
 
-
-In some networks, a few "hubs" have lots of connections, while everybody else only has a few.  This model shows one way such networks can arise.
-
-Such networks can be found in a surprisingly large range of real world situations, ranging from the connections between websites to the collaborations between actors.
-
-This model generates these networks by a process of "preferential attachment", in which new network members prefer to make a connection to the more popular existing members.
 
 ## HOW IT WORKS
 
-The model starts with a number of HUG members connected by an edge.
+The model starts with a number of fully connected scientists.
 
-At each step, a new node is added.  The probability that the new node is a HUG member is determined by a logistic growth equation; as time goes on, the probability approaches the population proportion of the HUG. A new node picks existing nodes to connect to randomly, but with some bias.  More specifically, a node's chance of being selected is directly proportional to the number of connections it already has, or its "degree," and its similarity to the new node. 
+At each step, a new node is added.  The probability that the new node is a HUG member is determined by a logistic growth equation; as time goes on, the probability approaches the population proportion of the HUG. A new node picks existing nodes to connect to randomly, but with some bias.  More specifically, a node's chance of being selected is directly proportional to the number of connections it already has, or its "degree," and its similarity to the new node. In this way the model is an extension of Barabási-Albert models of preferential attachment.  
 
 When the model contains more than 50 nodes, each new node has a 50% chance of connecting with all link-neighbors of the first node it chooses to connect to. This represents a scientific field which becomes established and adopts practices to train new scientists. Furthermore, beyond a specified size old nodes "retire," along with all of their links. 
 
 An attribution contest can occur at any time-step. One node in each group is randomly chosen. The HUG member is blue and the HEG member is green. At each step, a randomly chosen node turns either blue or green depending on whether the closest non-red node is blue or green. This represents each scientists learning about a discovery from someone in the network who already has a belief about who has made the discovery. A group wins when a supermajority of nodes believe that the member of said group made the discovery. 
+
+The HEG advantage is calculated by running a specified number of contests and taking the difference between the proportion of contests that a HEG member won and the proportion of contests that a HUG member won.
 
 ## HOW TO USE IT
 
@@ -663,7 +677,8 @@ The HOMOPHILY input determines how strongly new nodes consider similarity betwee
 
 The NUM-SCIENTISTS input determines the greatest possible size of the scientific community.
 
-The NUM-CONTESTS input determines the number of c
+Press the HEG-ADVANTAGE button to print the HEG advantage. The NUM-CONTESTS input determines the number of contests to run when determining the HEG advantage.
+
 
 The LAYOUT? switch controls whether or not the layout procedure is run.  This procedure attempts to move the nodes around to make the structure of the network easier to see.
 
@@ -683,15 +698,9 @@ You can see the degree distribution of the network in this model by looking at t
 
 ## THINGS TO TRY
 
-Let the model run a little while.  How many nodes are "hubs", that is, have many connections?  How many have only a few?  Does some low degree node ever become a hub?  How often?
+Play with the inputs and compare your results with those of Rubin and Schneider's. Are they the same?
 
-Turn off the LAYOUT? switch and freeze the view to speed up the model, then allow a large network to form.  What is the shape of the histogram in the top plot?  What do you see in log-log plot? Notice that the log-log plot is only a straight line for a limited range of values.  Why is this?  Does the degree to which the log-log plot resembles a straight line grow as you add more nodes to the network?
-
-## EXTENDING THE MODEL
-
-Assign an additional attribute to each node.  Make the probability of attachment depend on this new attribute as well as on degree.  (A bias slider could control how much the attribute influences the decision.)
-
-Can the layout algorithm be improved?  Perhaps nodes from different hubs could repel each other more strongly than nodes from the same hub, in order to encourage the hubs to be physically separate in the layout.
+Advanced: Consider whether Rubin and Schneider's model assumptions accurately reflect real scientific communities. If not, change the process by which the network develops and contests are run to better reflect the real world. Do you still get the same results as Rubin and Schneider?  
 
 ## NETWORK CONCEPTS
 
@@ -707,46 +716,24 @@ Though it is not used in this model, there exists a network extension for NetLog
 
 ## RELATED MODELS
 
-See other models in the Networks section of the Models Library, such as Giant Component.
-
-See also Network Example, in the Code Examples section.
+The code for displaying the network is based on Wilensky's Preferential Attachment model. 
 
 ## CREDITS AND REFERENCES
 
+Hannah Rubin, Mike D. Schneider,
+Priority and privilege in scientific discovery,
+Studies in History and Philosophy of Science Part A,
+Volume 89,
+2021,
+Pages 202-211,
+ISSN 0039-3681,
+https://doi.org/10.1016/j.shpsa.2021.08.005.
+(https://www.sciencedirect.com/science/article/pii/S0039368121001217)
+
 This model is based on:
-Albert-László Barabási. Linked: The New Science of Networks, Perseus Publishing, Cambridge, Massachusetts, pages 79-92.
+Wilensky, U. (2005).  NetLogo Preferential Attachment model.  http://ccl.northwestern.edu/netlogo/models/PreferentialAttachment.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
 
-For a more technical treatment, see:
-Albert-László Barabási & Reka Albert. Emergence of Scaling in Random Networks, Science, Vol 286, Issue 5439, 15 October 1999, pages 509-512.
-
-The layout algorithm is based on the Fruchterman-Reingold layout algorithm.  More information about this algorithm can be obtained at: http://cs.brown.edu/people/rtamassi/gdhandbook/chapters/force-directed.pdf.
-
-For a model similar to the one described in the first suggested extension, please consult:
-W. Brian Arthur, "Urban Systems and Historical Path-Dependence", Chapt. 4 in Urban systems and Infrastructure, J. Ausubel and R. Herman (eds.), National Academy of Sciences, Washington, D.C., 1988.
-
-## HOW TO CITE
-
-If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
-
-For the model itself:
-
-* Wilensky, U. (2005).  NetLogo Preferential Attachment model.  http://ccl.northwestern.edu/netlogo/models/PreferentialAttachment.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-Please cite the NetLogo software as:
-
-* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-## COPYRIGHT AND LICENSE
-
-Copyright 2005 Uri Wilensky.
-
-![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
-
-This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
-
-Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
-
-<!-- 2005 -->
+	
 @#$#@#$#@
 default
 true
