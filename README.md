@@ -1,1 +1,1 @@
-Open rubin-schneider-model2.nlogo on NetLogo 6.4.0 to use the model.
+rubin-schneider-model2.nlogo contains the NetLogo 6.4 file for the model. PHIL_177_Paper.pdf contains a paper in which I justify the epistemic value of social-scientific models.
