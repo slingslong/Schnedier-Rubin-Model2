@@ -28,6 +28,7 @@ end
 
 ;; go procedure for building and maintaining network
 to go
+  ask turtles [set color red] ;; reset color if the model has just finished running display-contest
   ask links [ set color gray ]
   make-node
   set remover remover + 1
@@ -146,34 +147,12 @@ to display-contest
       print ("Tie!")
     ]
   ]
-  reset-contest
 end
 
 ;; procedure to reset a contest
 to reset-contest
   ask turtles [set color red]
 end
-
-;; pseudo-code for assigning contestants
-;    random-seed new-seed
-;  set num2 random 99
-;  set num1 age-of-scientist
-;  while [num1 = num2] [
-;    set num2 random 99
-;  ]
-;  set hug-player turtle num1
-;  set heg-player turtle num2
-;  ask hug-player [set color blue]
-;  ask heg-player [set color green]
-
-;; used for creating a new node
-
-;error for future handling:
-;List is empty.
-;error while turtle 2331 running FIRST
-;  called by procedure MAKE-NODE
-;  called by procedure GO
-;  called by Button 'go'
 
 ;; procedure to make a node and connect it with other nodes.
 to make-node
@@ -223,7 +202,6 @@ to-report find-partners [new-node] ;; issue with turtle 178
   let turtle-weights map [i -> list (i) (homophily * (similarity new-node i / (1 + similarities)) +
     (1 - homophily) * (count [link-neighbors] of i / degrees))] old-nodes
   ;; We weigh each turtle's chances of connecting based on their similarity and degree. See Rubin and Schneider (2021).
- ;; issue with this code; calculation is the same for all turtles in list
   report lottery-winners turtle-weights
 end
 
@@ -265,20 +243,6 @@ to-report lottery-winners [turtle-weights]
   ]
   report results
 end
-
-;; junk code for m = 1 case that might be useful
-;  let weights map [i -> item 1 i] turtle-weights
-;  let pick random-float sum weights
-;  let result nobody
-;  set turtle-weights shuffle turtle-weights
-;    foreach turtle-weights[
-;    i ->
-;      if result = nobody
-;        [ ifelse item 1 i > pick
-;            [ set result i ]
-;            [ set pick pick - item 1 i] ] ]
-;  report result
-;end
 
 ;; a procedure that reports the shortest path-length between two turtles using depth-first search
 to-report path-length [start-turtle end-turtle]
@@ -356,12 +320,6 @@ to-report limit-magnitude [number limit]
   if number < (- limit) [ report (- limit) ]
   report number
 end
-
-
-
-
-; Copyright 2005 Uri Wilensky.
-; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
 345
@@ -545,10 +503,10 @@ NIL
 0
 
 INPUTBOX
-365
-504
-431
-564
+311
+509
+377
+569
 homophily
 0.8
 1
@@ -556,10 +514,10 @@ homophily
 Number
 
 MONITOR
-455
-510
-721
-555
+24
+590
+290
+635
 NIL
 count turtles with [group = 1] / count turtles
 17
@@ -589,10 +547,10 @@ count turtles
 11
 
 INPUTBOX
-821
-96
-1056
-156
+311
+581
+546
+641
 num-links
 4.0
 1
@@ -600,10 +558,10 @@ num-links
 Number
 
 INPUTBOX
-717
-493
-872
-553
+400
+508
+555
+568
 num-scientists
 100.0
 1
@@ -611,10 +569,10 @@ num-scientists
 Number
 
 INPUTBOX
-833
-187
-988
-247
+571
+507
+726
+567
 num-contests
 25.0
 1
@@ -622,12 +580,29 @@ num-contests
 Number
 
 BUTTON
-831
-281
-972
-314
+576
+590
+717
+623
 NIL
 show heg-advantage
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+756
+513
+866
+546
+NIL
+display-contest
 NIL
 1
 T
