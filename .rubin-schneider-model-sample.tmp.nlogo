@@ -531,15 +531,7 @@ The priority rule in science is the social norm that awards credit to the first 
 
 ## HOW IT WORKS
 
-The model begins with a number of fully connected scientists. Members of the HEG are represented by circles, while HUG members are represented by cubes.
 
-At each step, a new scientist is added. The probability that this new scientist belongs to the HUG is determined by a logistic growth equation; as time progresses, this probability approaches the population proportion of the HUG. A new scientist randomly selects existing scientists to connect with, albeit with a bias. More specifically, a scientist's likelihood of being selected is directly proportional to its number of connections, or 'degree,' and its similarity to the new scientist.
-
-Once the model includes more than 50 scientists, each new scientist has a 50% chance of connecting with all link-neighbors of the first scientist they choose to connect with. This scenario represents a scientific field that has become established and adopts practices for training new scientists. Additionally, once the network exceeds a specified size, older scientists 'retire,' along with all their connections.
-
-To model an instance of simultaneous discovery and the subsequent attribution contest, one scientist from each group is randomly chosen (the selected HUG member turns blue, and the HEG member turns green). Then, at each time step, a randomly chosen scientist in the network turns either blue or green, depending on whether the closest non-red scientist is blue or green. This dynamic represents each scientist learning about a discovery from someone in the network who already holds a belief about the discoverer's identity. A group wins the attribution contest when a supermajority of scientists believe that a member of their group made the discovery.
-
-The HEG advantage is calculated by running a specified number of contests and determining the difference between the proportion of contests won by an HEG member and those won by a HUG member.
 
 ## HOW TO USE IT
 
